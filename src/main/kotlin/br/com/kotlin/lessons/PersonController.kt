@@ -1,96 +1,48 @@
 package br.com.kotlin.lessons
 
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import kotlin.math.sqrt
+import br.com.kotlin.lessons.models.Person
+import br.com.kotlin.lessons.services.PersonService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 @RestController
-class MathController {
-    @RequestMapping(value = ["/sum/{numberOne}/{numberTwo}"])
-    fun sum(
-            @PathVariable(value="numberOne") numberOne: String?,
-            @PathVariable(value="numberTwo") numberTwo: String?
-    ): Double {
+@RequestMapping("/person")
+class PersonController {
+    @Autowired
+    private lateinit var service: PersonService
 
-        if (!isNumeric(numberOne) || !isNumeric(numberTwo))
-            throw UnsupportedOperationException("The number is invalid!")
-
-        return convertToDouble(numberOne) + convertToDouble(numberTwo)
+    @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun index(): List<Person> {
+        return service.findAll()
     }
 
-    @RequestMapping(value = ["/subtraction/{numberOne}/{numberTwo}"])
-    fun subtraction(
-            @PathVariable(value="numberOne") numberOne: String?,
-            @PathVariable(value="numberTwo") numberTwo: String?
-    ): Double {
-
-        if (!isNumeric(numberOne) || !isNumeric(numberTwo))
-            throw UnsupportedOperationException("The number is invalid!")
-
-        return convertToDouble(numberOne) - convertToDouble(numberTwo)
+    @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun index(@PathVariable("id") id: String): Person {
+        return service.findById(id.toLong())
     }
 
-    @RequestMapping(value = ["/multiplication/{numberOne}/{numberTwo}"])
-    fun multiplication(
-            @PathVariable(value="numberOne") numberOne: String?,
-            @PathVariable(value="numberTwo") numberTwo: String?
-    ): Double {
-
-        if (!isNumeric(numberOne) || !isNumeric(numberTwo))
-            throw UnsupportedOperationException("The number is invalid!")
-
-        return convertToDouble(numberOne) * convertToDouble(numberTwo)
+    @PostMapping(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun create(@RequestBody person: Person): Person {
+        return service.create(person)
     }
 
-    @RequestMapping(value = ["/division/{numberOne}/{numberTwo}"])
-    fun division(
-            @PathVariable(value="numberOne") numberOne: String?,
-            @PathVariable(value="numberTwo") numberTwo: String?
-    ): Double {
-
-        if (!isNumeric(numberOne) || !isNumeric(numberTwo))
-            throw UnsupportedOperationException("The number is invalid!")
-
-        return convertToDouble(numberOne) / convertToDouble(numberTwo)
+    @PutMapping(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun update(@RequestBody person: Person): Person {
+        return service.update(person)
     }
 
-    @RequestMapping(value = ["/mean/{numberOne}/{numberTwo}"])
-    fun mean(
-            @PathVariable(value="numberOne") numberOne: String?,
-            @PathVariable(value="numberTwo") numberTwo: String?
-    ): Double {
+    @DeleteMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun delete(@PathVariable("id") id: String) : ResponseEntity<*> {
+        service.delete(id.toLong())
 
-        if (!isNumeric(numberOne) || !isNumeric(numberTwo))
-            throw UnsupportedOperationException("The number is invalid!")
-
-        return (convertToDouble(numberOne) + convertToDouble(numberTwo)) / 2
-    }
-
-    @RequestMapping(value = ["/square-root/{number}"])
-    fun squareRoot(
-            @PathVariable(value="number") number: String?
-    ): Double {
-
-        if (!isNumeric(number))
-            throw UnsupportedOperationException("The number is invalid!")
-
-        return sqrt(convertToDouble(number))
-    }
-
-    private fun convertToDouble(stringNumber: String?): Double {
-        if (stringNumber.isNullOrBlank()) return 0.0
-
-        val number = stringNumber.replace(",".toRegex(), ".")
-
-        return if (isNumeric(number)) number.toDouble() else 0.0
-    }
-
-    private fun isNumeric(stringNumber: String?): Boolean {
-        if (stringNumber.isNullOrBlank()) return false
-
-        val number = stringNumber.replace(",".toRegex(), ".")
-
-        return number.matches("""[-+]?[0-9]*\.?[0-9]""".toRegex())
+        return ResponseEntity.noContent().build<Any>()
     }
 }
